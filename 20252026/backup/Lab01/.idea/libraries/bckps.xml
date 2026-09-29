@@ -1,0 +1,12 @@
+<component name="libraryTable">
+  <library name="bckps">
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/bckps/Lab01_bckp1.zip!/" />
+      <root url="jar://$PROJECT_DIR$/bckps/Lab01_bckp0.zip!/" />
+      <root url="jar://$PROJECT_DIR$/bckps/Lab01_bckp.zip!/" />
+      <root url="jar://$PROJECT_DIR$/bckps/Lab01_bckp2.zip!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

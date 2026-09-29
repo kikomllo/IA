@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/CalcRega/CalcRega.iml" filepath="$PROJECT_DIR$/CalcRega/CalcRega.iml" />
+      <module fileurl="file://$PROJECT_DIR$/IA.iml" filepath="$PROJECT_DIR$/IA.iml" />
+      <module fileurl="file://$PROJECT_DIR$/backup/Lab01/Lab01.iml" filepath="$PROJECT_DIR$/backup/Lab01/Lab01.iml" />
+      <module fileurl="file://$PROJECT_DIR$/backup/Lab02/Lab02.iml" filepath="$PROJECT_DIR$/backup/Lab02/Lab02.iml" />
+      <module fileurl="file://$PROJECT_DIR$/backup/Lab03/Lab03.iml" filepath="$PROJECT_DIR$/backup/Lab03/Lab03.iml" />
+      <module fileurl="file://$PROJECT_DIR$/backup/Lab03_0/Lab03_0.iml" filepath="$PROJECT_DIR$/backup/Lab03_0/Lab03_0.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Lab04/Lab04.iml" filepath="$PROJECT_DIR$/Lab04/Lab04.iml" />
+      <module fileurl="file://$PROJECT_DIR$/No/No.iml" filepath="$PROJECT_DIR$/No/No.iml" />
+    </modules>
+  </component>
+</project>
