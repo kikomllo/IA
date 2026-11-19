@@ -1,0 +1,5 @@
+4 6
+R B P Y G E
+P Y B Y R E
+P G R G B E
+P B R Y G E

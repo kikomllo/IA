@@ -101,7 +101,7 @@ public class Board implements Ilayout, Cloneable {
 			result += "\n";
 		}
 
-		return result;
+		return result; 
 	}
 
 	/**
