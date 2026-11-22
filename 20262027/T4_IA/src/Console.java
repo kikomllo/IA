@@ -43,7 +43,7 @@ public class Console {
         	board.move(position);
 
         } else {
-        	position = XAgent.play(board);
+        	position = MCTSAgent.play(board);
         	board.move(position);
         }
     }
@@ -77,28 +77,28 @@ public class Console {
     private void printWinner () {
         Ilayout.ID winner = board.getWinner();
 
-       IO.println("\n" + board + "\n");
+        IO.println("\n" + board + "\n");
 
         if (winner == Ilayout.ID.Blank) {
-           IO.println("It's a draw.");
+            IO.println("It's a draw.");
         } else {
-           IO.println("Player " + winner.toString() + " wins!");
+            IO.println("Player " + winner.toString() + " wins!");
         }
     }
 
 
 
      void main()  {
-    	    final int repetitions=3;
-    	    long times = 0;
-    	    for(int i=0; i<repetitions; i++) {
-    	    	Console game = new Console();
-	    	    long startTime = System.currentTimeMillis();
-	    	    game.play();
-	    	    long totalTime = System.currentTimeMillis() - startTime;
-	    	    times += totalTime;
-    	    }
-    	   IO.println("Av Time: " + times*1.0f/repetitions+ " milisecs");
+        final int repetitions=3;
+        long times = 0;
+        for(int i=0; i<repetitions; i++) {
+            Console game = new Console();
+            long startTime = System.currentTimeMillis();
+            game.play();
+            long totalTime = System.currentTimeMillis() - startTime;
+            times += totalTime;
+        }
+        IO.println("Av Time: " + times*1.0f/repetitions+ " milisecs");
     }
 
 }

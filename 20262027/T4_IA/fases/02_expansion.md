@@ -21,9 +21,9 @@ Há duas variantes, e o enunciado deixa a escolha em aberto:
 | Variante | O que faz | Onde aparece |
 |---|---|---|
 | Expandir **um** filho por iteração | Acrescenta só um dos sucessores | AIMA fig. 6.11 |
-| Expandir **todos** os filhos | Acrescenta todos os sucessores de uma vez | **Sugerido pela Fig. 2** do enunciado **[inferido]** |
+| Expandir **todos** os filhos | Acrescenta todos os sucessores de uma vez | **Sugerido pelo texto da Simulation** do enunciado (*"for each successor"*) **[inferido]** |
 
-O enunciado diz *"expande a árvore anexando um dado número de sucessores à folha"* e, na fase seguinte, *"para cada sucessor"* faz uma simulação. Isto aponta para expandir todos.
+O enunciado diz *"expande a árvore anexando um dado número de sucessores à folha"* e, na fase seguinte, *"para cada sucessor"* faz uma simulação. Isto aponta para expandir todos. A Fig. 2 **não decide**: a regra `n(pai) = 1 + Σ n(filhos)` também se cumpre com um filho por iteração. E o enunciado define folha como *"a node with unexpanded successors"*, que também cabe na variante de um filho. Regista a escolha como decisão de desenho (item iv do relatório) e justifica-a.
 
 > **Decisão tomada: expandir todos os filhos.** Em cada expansão criam-se de uma vez todos os sucessores da folha (um nó por jogada legal). Os restantes pontos deste documento (exemplo, casos especiais, erros comuns) assumem esta escolha.
 
@@ -97,7 +97,7 @@ Repara em três coisas:
 - **Esquecer de guardar a jogada** em cada filho (a decisão final precisa dela).
 - **Não alternar MAX/MIN** entre níveis, ou alternar à mão e enganar-se.
 - **Inicializar $n$ ou $w$ com valores diferentes de 0**. Quem os atualiza é a retropropagação.
-- **Expandir uma folha e simular só um filho** quando a tua decisão é expandir todos: ficas com filhos a $n = 0$ por tratar (a seleção trata-os, mas a contabilidade de `n(pai) = 1 + Σ n(filhos)` deixa de bater com a Fig. 2).
+- **Expandir uma folha e simular só um filho** quando a tua decisão é expandir todos: ficas com filhos a $n = 0$ por tratar (a seleção trata-os, mas estás a fazer outra variante sem o teres decidido).
 
 ## 6. Para pensares (sem solução aqui)
 

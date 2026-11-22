@@ -1,6 +1,7 @@
 import java.util.*;
 // import java.util.ArrayList;
 
+
 /**
  * Represents a board.
  */
@@ -58,9 +59,9 @@ public class Board implements Ilayout,Cloneable{
 
     /**
      * Places an X or an O on the specified location depending on who turn it is.
-     * @param x         the x coordinate of the location
-     * @param y         the y coordinate of the location
-     * @return          true if the move has not already been played
+     * @param x the x coordinate of the location
+     * @param y the y coordinate of the location
+     * @return  true if the move has not already been played
      */
    public boolean move (int x, int y) {
 
@@ -84,34 +85,81 @@ public class Board implements Ilayout,Cloneable{
         }
 
         // Check for a winner.
-
-        /** YOUR CODE HERE */
-
-
+        if (checkLine(x, y)){
+            winner = playersTurn;
+            gameOver = true;
+        }
+        
         playersTurn = (playersTurn == ID.X) ? ID.O : ID.X;
         return true;
     }
 
     /**
+     * Checks whether the piece just placed at {@code (x, y)} completes a line of {@code K} pieces.
+     * Only the four lines through that cell (row, column and both diagonals) can have been completed,
+     * so only those are examined, each one in both directions.
+     *
+     * @param x the column of the cell just played
+     * @param y the row of the cell just played
+     * @return true if the player who just moved has a line
+     */
+    private boolean checkLine(int x, int y){
+        final int[][] VECTORS = {{1, 0},{0, 1},{1, 1},{1, -1}};
+        ID player = board[y][x];
+        int sum;
+
+        for (int[] vector : VECTORS){
+            sum = 1 +   countLine(x, y, vector[0], vector[1], player) +
+                        countLine(x, y, -vector[0], -vector[1], player);
+            if (sum >= K) 
+                return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Counts the consecutive cells of {@code player} found by walking from {@code (x, y)}, without
+     * counting that cell, in the direction {@code (dx, dy)} until the board ends or another cell appears.
+     *
+     * @param x      the column where the walk starts
+     * @param y      the row where the walk starts
+     * @param dx     the step in columns
+     * @param dy     the step in rows
+     * @param player the player whose cells are counted
+     * @return the number of consecutive cells of {@code player}
+     */
+    private int countLine(int x, int y, int dx, int dy, ID player){
+        int counter = 0;
+        int currentX = x + dx, currentY = y + dy;
+
+        while (0 <= currentX && currentX < M && 0 <= currentY && currentY < N){
+            if (board[currentY][currentX] != player) break;
+            counter++;
+            currentX += dx; currentY += dy;
+        }
+
+        return counter;
+    }
+
+    /**
      * Check to see if the game is over (if there is a winner or a draw).
-     * @return          true if the game is over
+     * @return true if the game is over
      */
     public boolean isGameOver () {
         return gameOver;
     }
 
-
-
     /**
      * Check to see who's turn it is.
-     * @return          the player who's turn it is
+     * @return the player who's turn it is
      */
     public ID getTurn () {
         return playersTurn;
     }
 
     /**
-     * @return          the player who won (or Blank if the game is a draw)
+     * @return the player who won (or Blank if the game is a draw)
      */
     public ID getWinner () {
         if (!gameOver) {
@@ -175,14 +223,27 @@ public class Board implements Ilayout,Cloneable{
         return new String(sb);
     }
 
-     /**
-         *
-         * @return the children of the receiver.
+    /**
+     * Generates the successors of this state: one independent copy for each free cell, with that cell
+     * played, in ascending order of the cell. The receiver is not modified.
+     *
+     * @return the children of the receiver (empty if the game is over)
      */
-     public List<Ilayout> children() {
+    public List<Ilayout> children() {
+        List<Ilayout> children = new ArrayList<>();
+        if (gameOver) return children;
 
-        // YOUR CODE HERE
-     }
+        List<Integer> sortedAvai = new ArrayList<>(movesAvailable);
+        Collections.sort(sortedAvai);
+
+        for (int move : sortedAvai){
+            Board child = (Board) clone();
+            child.move(move);
+            children.add(child);
+        }
+
+        return children;
+    }
 
 
 	@Override

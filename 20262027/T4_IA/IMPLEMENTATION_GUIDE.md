@@ -7,6 +7,14 @@ Resumo do que é pedido, a matéria necessária explicada a detalhe, o desenho p
 > Este guia **não resolve** o problema: explica o que é preciso saber e propõe um desenho. **O código é teu.** A pasta `src/` tem só os 4 ficheiros do professor (`Prob3-code.zip`), sem alterações.
 > As partes marcadas com **[inferido]** não estão escritas no enunciado: são deduções (por exemplo a partir da Fig. 2). Confirma-as no laboratório antes da defesa.
 
+> **Os seis pontos que não podem falhar** (checklist rápida; detalhes nas secções 7 e 12)
+> 1. O agente **nunca altera** o `Ilayout` recebido; trabalha sempre sobre cópias (`children()`).
+> 2. MAX é quem joga na **raiz**; `w` conta sempre do ponto de vista dele.
+> 3. MAX maximiza `w/n + bónus`; MIN minimiza `w/n − bónus`.
+> 4. Um filho com `n = 0` escolhe-se **antes** de avaliar a fórmula (nunca `ln 0` nem divisão por 0).
+> 5. A **mesma** recompensa (1 / 0.5 / 0) sobe por todo o caminho; não se inverte nos nós MIN.
+> 6. A jogada final é a do filho direto da raiz com **mais visitas**, não a de maior média.
+
 **Índice**
 
 1. [O que é pedido](#1-o-que-é-pedido)
@@ -29,7 +37,7 @@ Resumo do que é pedido, a matéria necessária explicada a detalhe, o desenho p
 
 ## 1. O que é pedido
 
-**Prazo: 18 Nov 2026** (submissão do relatório em `.zip` em <http://deei-mooshak.ualg.pt/~jvo/IA/Entregas/>, como *assignment 3*). Depois é preciso **defender** o trabalho numa aula de laboratório (ver aula T1: sem defesa bem-sucedida o trabalho não é validado, e falhar as perguntas sobre implementação ou alternativas invalida-o).
+**Prazo: 23 Nov 2026** (adiado; o original era 18 Nov) (submissão do relatório em `.zip` em <http://deei-mooshak.ualg.pt/~jvo/IA/Entregas/>, como *assignment 3*). Depois é preciso **defender** o trabalho numa aula de laboratório (ver aula T1: sem defesa bem-sucedida o trabalho não é validado, e falhar as perguntas sobre implementação ou alternativas invalida-o).
 
 ### 1.1 Tarefa
 
@@ -225,7 +233,7 @@ Em cada fase abaixo: **Teoria** (genérica, vale para qualquer problema) e **Nes
 
 **Teoria.** Anexam-se **novos nós** à folha encontrada: os sucessores, ou seja, os estados que se obtêm aplicando as jogadas legais. É assim que a árvore **cresce** uma iteração de cada vez. Há duas variantes: expandir **um** filho (AIMA) ou **todos** de uma vez. O enunciado fala em "um dado número de sucessores".
 
-**Neste projeto.** Expandem-se **todos** os sucessores da folha **[inferido da Fig. 2]**: chama-se `children()` do `Ilayout` e cada layout devolvido passa a ser um `Node` com `n = 0`, `w = 0`, o pai e a jogada que o originou. Se a folha é terminal não se expande.
+**Neste projeto.** Expandem-se **todos** os sucessores da folha **[decisão do grupo, ver secção 15]**: chama-se `children()` do `Ilayout` e cada layout devolvido passa a ser um `Node` com `n = 0`, `w = 0`, o pai e a jogada que o originou. Se a folha é terminal não se expande. A razão é o texto do enunciado na fase Simulation (*"for each successor"*); a variante AIMA de **um** filho por iteração é a alternativa a justificar no relatório.
 
 ### 5.5 Fase 3 — Simulation (*rollout*)
 
@@ -375,6 +383,7 @@ O rótulo MAX/MIN diz **quem escolhe entre os filhos desse nó**: a raiz é MAX 
 
 - cada nó conta **uma simulação própria**, feita quando foi criado como sucessor (a raiz também: uma simulação inicial);
 - quando um nó é depois expandido, as simulações dos seus filhos **sobem pelo caminho** e somam-se aos contadores dele e de todos os antepassados.
+- Esta contabilidade **não distingue** «expandir todos» de «um filho por iteração» (nas duas, cada nó conta a simulação feita quando foi criado). O que ela obriga é a **raiz ter uma simulação própria** (`n(raiz) = 11 = 1 + 10`).
 
 ### 7.5 O que o esqueleto já dá e o que falta
 
@@ -392,9 +401,18 @@ O `MCTS` só pode falar com o `Ilayout`. O do professor já tem quase tudo o que
 O que **falta no esqueleto** e tens de decidir:
 - **Teste de vencedor** no `Board` (o `/** YOUR CODE HERE */` de `move`): como detetar 3 em linha. Pensa se testas as 8 linhas ou só as que passam pela última jogada, e em que ordem se faz o teste de empate e o de vitória (uma jogada que enche o tabuleiro e faz linha é vitória ou empate?).
 - **`children()`** no `Board`: uma cópia por casa livre com essa jogada feita (`clone()` e `move`). A cópia é obrigatória: se `children()` alterasse o tabuleiro original, o argumento do agente seria modificado e o enunciado proíbe-o.
-- **Saber que casa levou a um layout**, para o agente devolver a casa da raiz. O `Ilayout` não tem isto. Podes acrescentar um método (o enunciado permite estender a interface) ou guardar a jogada no `Node` ao criá-lo.
+- **Saber que casa levou a um layout**, para o agente devolver a casa da raiz. O `Ilayout` não tem isto. **Recomendado: não estender a interface.** Guarda a jogada no `Node` e calcula-a ao expandir: é a **única** casa que está em `getAvailableMoves()` do pai e já não está na do filho. Não depende da ordem de `children()` e, como `getAvailableMoves()` devolve cópias, não altera ninguém.
 
 A **conversão para o ponto de vista de MAX** (1 se ganha o jogador MAX, 0.5 se `Blank`, 0 caso contrário) faz-se no algoritmo, não no `Board`.
+
+**Pormenores do `Board` fornecido que convém conhecer** (verificados em `src/Board.java`):
+
+- Em `move`, o empate (`moveCount == N*M`) é marcado **antes** do teste de vencedor, e a vez é trocada **sempre**, mesmo com o jogo acabado. O teu teste de vencedor tem de **sobrepor** o empate (a última jogada pode ser vitória). Convém também só trocar a vez se o jogo continuar, para `getTurn()` num estado terminal não ser enganador.
+- `getAvailableMoves()` é um `HashSet<Integer>`: não garante ordem. Em `children()` itera sobre uma cópia **ordenada**, para a ordem dos filhos (e os desempates, e a repetibilidade com semente) não depender do `HashSet`.
+- `clone()` devolve `Object`: em `children()` faz-se `(Board) clone()` e depois `move(casa)` **sobre a cópia**.
+- `movesAvailable.remove(y * N + x)` e o `x`/`y` trocado em `isBlank` dão o mesmo resultado porque `N = M = 3`: não é preciso mexer. `equals` ignora a vez, o que é irrelevante porque o MCTS não compara estados.
+- `move(int)` não valida o intervalo `0..8`, e o `Console` imprime «Invalid move» mas devolve o índice na mesma, por isso um índice fora do intervalo rebenta. Só vale a pena corrigir se quiseres jogar à mão com robustez; não faz parte do MCTS.
+- **Java 25**: o `Console` usa `IO.println` e `void main()` não estático. Com o `javac` 21 que está no PATH não compila (verificado); há um JDK 25 em `~/.jdks/openjdk-25`.
 
 ### 7.6 A classe `Node`
 
@@ -407,7 +425,7 @@ private static class Node {
     List<Node> children;       // vazia enquanto o nó é folha
     int n;                     // simulações que passaram por aqui
     double w;                  // vitórias de MAX (empate = 0.5)
-    boolean maxToPlay;         // true se quem joga neste nó é MAX
+    boolean maxToPlay;         // true se layout.getTurn() == jogador da raiz
     int move;                  // casa jogada para chegar aqui
 
     Node(Ilayout layout, Node parent, boolean maxToPlay, int move) { ... }
@@ -416,6 +434,7 @@ private static class Node {
 
 Notas:
 - `maxToPlay` decide como se escolhe **entre os filhos deste nó**: nó MAX maximiza, nó MIN minimiza.
+- Calcula-o ao criar o nó, a partir do próprio layout (`layout.getTurn() == jogadorMax`, com `jogadorMax = getTurn()` da raiz). **Não o alternes à mão** nos níveis: elimina o erro «esqueci-me de alternar» e funciona igual com X ou O.
 - `children` vazio e jogo por acabar = **folha por expandir**. Um nó terminal nunca é expandido.
 - Não precisas de `g`, `h` nem `f`.
 
@@ -486,8 +505,9 @@ Node melhorFilho(Node pai) {
 ```java
 void expand(Node folha) {
     for (Ilayout sucessor : folha.layout.children()) {
-        boolean maxJoga = !folha.maxToPlay;        // a vez alterna a cada nivel
-        folha.children.add(new Node(sucessor, folha, maxJoga, /* casa jogada */));
+        boolean maxJoga = (sucessor.getTurn() == jogadorMax);  // vem do proprio layout
+        int casa = /* unica casa livre no pai e ocupada no sucessor */;
+        folha.children.add(new Node(sucessor, folha, maxJoga, casa));
     }
 }
 ```
@@ -540,6 +560,7 @@ Notas:
 - O agente é uma função que **recebe um `Ilayout` e devolve um `int`** (casa 0 a 8), como o `XAgent.play`. Chama o teu MCTS.
 - **Não alteres o argumento**: o MCTS trabalha sobre a raiz sem modificar o layout recebido, e cada `children()` devolve cópias.
 - O `XAgent` (aleatório) serve de **adversário de teste** e de referência de interface.
+- **Não substituas o corpo de `XAgent.play`**: sem o agente aleatório deixas de ter adversário para as experiências (secção 7.13). Cria uma classe de agente à parte (mesma assinatura `static int play(Ilayout)`) que delega no MCTS e, na `Console`, troca só a chamada.
 - Na `Console`, o jogador O usa `XAgent.play(board)`: é aí que podes ligar o teu agente.
 
 ### 7.9 Parâmetros
@@ -595,7 +616,7 @@ Repara que o MIN escolheu a jogada pior para MAX (w=0), como se quer. O ciclo co
 - **Só uma casa livre**: o agente devolve essa casa. Pode retornar logo, sem procurar.
 - **Raiz já terminal**: não há jogada válida; trata esse caso no agente.
 - **Agente joga primeiro ou segundo, com X ou com O**: o resultado **não** deve depender disso (`MAX = quem joga na raiz`).
-- **Empates entre filhos com o mesmo `n`** na decisão final: escolhe o de maior `w/n`, ou o primeiro, e regista a decisão.
+- **Empates entre filhos com o mesmo `n`** na decisão final: critério fixo e determinístico, **maior `w/n`** e, se ainda empatar, o de menor índice de casa (ordem de `children()`). Regista-o em iv. Com orçamentos muito pequenos (todos os filhos com `n = 1`) é este desempate que decide a jogada.
 - **Transposições**: duas ordens de jogadas dão dois nós diferentes. É correto no MCTS básico e não é preciso detetar repetições.
 
 ### 7.12 O que esperar (para validar a qualidade)
@@ -605,6 +626,19 @@ Repara que o MIN escolheu a jogada pior para MAX (w=0), como se quer. O ciclo co
 - Contra um **minimax completo** o MCTS não deve perder; se perder, há provavelmente um erro no sinal de MIN ou no ponto de vista de `w`.
 - Com **menos iterações** o MCTS joga pior: mostra no relatório como o resultado melhora com o orçamento, e experimenta valores diferentes de `c`.
 - Posições com **vitória em 1 jogada** ou **bloqueio obrigatório** são testes baratos e muito reveladores (secção 10).
+
+### 7.13 Plano de experiências (item viii)
+
+| Eixo | Valores |
+|---|---|
+| Iterações | 100, 1 000, 10 000 |
+| `c` | 0.1, **0.2** (Fig. 2), 0.5, √2 |
+| Adversário | aleatório (`XAgent`); minimax completo (**só nos testes**, é um oráculo e não faz parte da solução); MCTS contra MCTS |
+| Papel do agente | como X **e** como O |
+
+- Por combinação, centenas de partidas (por exemplo 200, metade como X e metade como O; menos nas de 10 000 iterações se for lento).
+- Regista: vitórias / empates / derrotas, tempo médio por jogada, semente e número total de simulações.
+- Com «expandir todos», uma iteração faz até `b` rollouts (`b` = nº de filhos da folha). Define no relatório o que contas como iteração e regista também as simulações totais (≈ `n` da raiz), para as comparações serem justas.
 
 ---
 
@@ -716,16 +750,38 @@ classDiagram
         do professor
         falta teste de vencedor e children()
     }
+    class ID {
+        <<enumeration>>
+        Blank
+        X
+        O
+    }
     class MCTS {
-        o algoritmo (padrão do Lab 1)
+        -int iterations
+        -double c
+        -long seed
+        +MCTS(int iterations, double c, long seed)
+        +chooseMove(Ilayout state) int
+        -select(Node root) Node
+        -expand(Node leaf, ID maxPlayer) void
+        -bestChild(Node parent) Node
+        -rollout(Ilayout start, Random random) Ilayout
+        -resultForMax(Ilayout end, ID maxPlayer) double
+        -backPropagate(Node node, double result) void
+        -mostVisitedChild(Node root) Node
     }
     class Node {
-        layout, parent, children
-        maxToPlay, move, n, w
+        <<private static nested>>
+        -Ilayout layout
+        -Node parent
+        -List~Node~ children
+        -int move
+        -int n
+        -double w
+        -boolean maxToPlay
     }
     class Agente {
-        Ilayout para int
-        usa o MCTS
+        ~play(Ilayout board) int$
     }
     class XAgent {
         agente aleatório do professor
@@ -734,7 +790,10 @@ classDiagram
         do professor
     }
     Ilayout <|.. Board : implements
+    Ilayout ..> ID : usa
     MCTS *-- Node : classe interna
+    Node "1" *-- "0..*" Node : filhos
+    Node --> Ilayout : estado
     MCTS ..> Ilayout : so conhece a interface
     Agente ..> MCTS : usa
     Console ..> Board : usa
@@ -762,6 +821,9 @@ O enunciado pede os testes no relatório (item iii). Ideias:
 - Os 8 alinhamentos de vitória (cada um dá vitória a X e a O) e o empate.
 - `children()` devolve uma cópia por casa livre, não altera o original.
 - Um tabuleiro cheio sem vencedor é terminal e dá empate; uma jogada que enche o tabuleiro e faz linha é vitória.
+- Jogar numa casa ocupada devolve `false` e **não altera nada** (nem `moveCount`, nem a vez, nem as casas livres). Jogar depois do fim lança `IllegalStateException`.
+- `children()` devolve os filhos por ordem crescente de casa e um estado terminal não tem filhos.
+- Os jogadores alternam e, depois de uma jogada vencedora, o estado é terminal.
 
 *Fórmulas*
 - As expressões da tabela da secção 7.4 (0.65, 0.31, 0.74, 0.19, 0.75, 1.21, 0.21, com tolerância de 0.01) e que as setas da Fig. 2 são as escolhidas.
@@ -769,7 +831,7 @@ O enunciado pede os testes no relatório (item iii). Ideias:
 - A seleção escolhe um filho por visitar (`n = 0`) antes de avaliar a expressão, e nunca dá `NaN` nem calcula `ln 0`.
 
 *Fases*
-- `expand` cria um filho por casa livre, com `n = 0`, `w = 0`, o pai correto e `maxToPlay` alternado.
+- `expand` cria um filho por casa livre, com `n = 0`, `w = 0`, o pai correto, `maxToPlay == (getTurn() == jogadorMax)` e a jogada certa (coincide com a diferença entre `getAvailableMoves()` do pai e do filho).
 - `rollout` devolve sempre um estado terminal e não altera o layout de entrada.
 - `backPropagate` incrementa `n` em **todos** os nós do caminho e só nesses, e soma `resultado` a `w`.
 - Resultado do ponto de vista de MAX: vitória 1, empate 0.5, derrota 0, com MAX = X e com MAX = O.
@@ -805,6 +867,15 @@ Segue a ordem i a x do enunciado.
 - **ix** Conclusões.
 - **x** Referências e **ferramentas de IA usadas** (declara-as).
 
+**Javadoc (item vi): convenção mínima.**
+
+- Um só idioma. O esqueleto do professor está em inglês: Javadoc do código em inglês, relatório em português.
+- Todas as classes, construtores e métodos (também os privados: gera-se com `-private`). Primeira frase curta com **uma** responsabilidade; um `@param` por parâmetro; `@return` só se o método não for `void`; `@throws` quando o contrato lança exceção.
+- `@see` só quando aponta para algo realmente usado (`@see Ilayout#children()`, ou `"Problem 3 - MCTSv3.2c.pdf, Fig. 6.11"`).
+- `@author`, `@version` e `@inv` são **opcionais**: o enunciado não os pede e nenhum trabalho anterior do grupo usa `@inv`. Se os quiserem, o `javadoc` precisa de `-tag "inv:a:Invariant:"`, senão costuma falhar com «unknown tag».
+- Comando (na pasta `T4_IA`, com o JDK 25): `javadoc -private -d docs src/*.java` (comando não corrido sobre o vosso código final).
+- Um comentário não serve para compensar código confuso: primeiro nomes e métodos claros.
+
 ---
 
 ## 12. Armadilhas
@@ -819,7 +890,9 @@ Segue a ordem i a x do enunciado.
 - `children()` que não copia o tabuleiro (altera o estado original).
 - Tratar mal um **nó terminal** na seleção: não se expande, retropropaga-se o resultado.
 - Decidir `maxToPlay` pela marca X/O em vez de por "quem joga na raiz": o agente com O fica ao contrário.
-- Não alternar `maxToPlay` ao criar os filhos.
+- Alternar `maxToPlay` à mão em vez de o derivar de `getTurn()`: qualquer engano inverte a política desse nível para baixo.
+- Assumir que `HashSet<Integer>` itera por ordem: ordena a cópia em `children()`, senão a semente deixa de dar resultados repetíveis.
+- Terminar a última jogada como empate: o teste de vencedor tem de sobrepor o empate que o esqueleto marca antes.
 - Usar a mesma instância de `Random` sem semente nos testes (resultados não repetíveis).
 
 ---
@@ -846,7 +919,9 @@ Na defesa podem perguntar sobre a implementação, as decisões e as alternativa
 
 ## 14. Ordem de trabalho sugerida
 
-Prazo 18 Nov.
+Prazo **23 Nov** (foi adiado do dia 18; hoje é 20 Nov, tens hoje e mais 3 dias). Ver também o [PLANO_IMPLEMENTACAO.md](PLANO_IMPLEMENTACAO.md).
+
+**Antes do passo 1 (ambiente):** compilar com o **JDK 25** (secção 7.5) e copiar o padrão do `T3_IA/run_tests.sh` (usa esse JDK e o JUnit em `lib/`) para ter os testes a correr com um comando desde o início.
 
 1. Ler o esqueleto (`src/`) e completar o **teste de vencedor** e o `children()` no `Board`. Jogar uma partida na `Console`.
 2. Decidir se estendes o `Ilayout` (secção 7.5) e garantir que `children()` copia.
@@ -861,7 +936,7 @@ Prazo 18 Nov.
 
 ## 15. Dúvidas a esclarecer com o docente
 
-1. **Quantos sucessores se expandem por iteração?** O enunciado diz "um dado nº"; a Fig. 2 sugere todos. Se for todos e se simular cada um, nenhum filho fica a `n = 0` na seleção.
+1. **Quantos sucessores se expandem por iteração?** O enunciado diz "um dado nº". O texto da Simulation (*"for each successor"*) aponta para todos; já "leaf = node with unexpanded successors" e o AIMA (Fig. 6.11) apontam para um por iteração. A contabilidade da Fig. 2 serve para as duas. **Decisão do grupo: todos** (leitura literal do enunciado), com a variante de um filho justificada no relatório. Se for todos e se simular cada um, nenhum filho fica a `n = 0` na seleção.
 2. **A raiz é simulada uma vez no início?** A Fig. 2 sugere `n(pai) = 1 + Σ n(filhos)`.
 3. **Quem é MAX** quando o agente joga com O? (Proposta: MAX = quem joga na raiz.)
 4. **Ball Sort (só se mudarem de ideias):** o enunciado não diz o que o programa imprime no fim.
