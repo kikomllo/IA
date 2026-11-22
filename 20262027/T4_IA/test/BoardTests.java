@@ -343,4 +343,62 @@ class BoardTests {
         assertEquals(77_904, oWins);
         assertEquals(46_080, draws);
     }
+
+    /* ---------- invalid arguments ---------- */
+
+    /** Asserts that {@code attempt} is rejected and that {@code b} is exactly as it was before. */
+    private static void assertRejectedAndUnchanged(Board b, org.junit.jupiter.api.function.Executable attempt) {
+        Board before = (Board) b.clone();
+        Ilayout.ID turn = b.getTurn();
+        boolean over = b.isGameOver();
+        Set<Integer> free = b.getAvailableMoves();
+
+        assertThrows(IllegalArgumentException.class, attempt);
+
+        assertEquals(before, b);
+        assertEquals(before.toString(), b.toString());
+        assertEquals(turn, b.getTurn());
+        assertEquals(over, b.isGameOver());
+        assertEquals(free, b.getAvailableMoves());
+    }
+
+    @Test
+    void moveRejectsAnIndexOutsideTheBoard() {
+        Board b = play(0, 4);
+        assertRejectedAndUnchanged(b, () -> b.move(-1));
+        assertRejectedAndUnchanged(b, () -> b.move(Ilayout.N * Ilayout.M));
+        assertRejectedAndUnchanged(b, () -> b.move(Integer.MIN_VALUE));
+        assertRejectedAndUnchanged(b, () -> b.move(Integer.MAX_VALUE));
+    }
+
+    @Test
+    void moveRejectsCoordinatesOutsideTheBoard() {
+        Board b = play(0, 4);
+        assertRejectedAndUnchanged(b, () -> b.move(-1, 0));
+        assertRejectedAndUnchanged(b, () -> b.move(0, -1));
+        assertRejectedAndUnchanged(b, () -> b.move(Ilayout.M, 0));
+        assertRejectedAndUnchanged(b, () -> b.move(0, Ilayout.N));
+    }
+
+    @Test
+    void isBlankRejectsAnIndexOutsideTheBoard() {
+        Board b = play(0, 4);
+        assertRejectedAndUnchanged(b, () -> b.isBlank(-1));
+        assertRejectedAndUnchanged(b, () -> b.isBlank(Ilayout.N * Ilayout.M));
+    }
+
+    @Test
+    void isBlankAnswersForEveryCell() {
+        Board b = play(0, 4, 8);
+        for (int cell = 0; cell < Ilayout.N * Ilayout.M; cell++) {
+            assertEquals(cell != 0 && cell != 4 && cell != 8, b.isBlank(cell), "cell " + cell);
+        }
+    }
+
+    @Test
+    void anOutOfBoardMoveAfterTheGameIsOverIsStillAnArgumentError() {
+        Board won = play(0, 3, 1, 4, 2);       // X completes the top row
+        assertThrows(IllegalArgumentException.class, () -> won.move(-1));
+        assertThrows(IllegalStateException.class, () -> won.move(8));
+    }
 }

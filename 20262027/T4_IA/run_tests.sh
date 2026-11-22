@@ -5,7 +5,7 @@
 # Run it from the T4_IA folder. Needs JDK 25 (Console uses java.lang.IO); if the javac on the PATH is
 # older, it falls back to ~/.jdks/openjdk-25.
 #
-# Console.java is not compiled here (it only reads the keyboard); the tests cover everything else.
+# Console.java is compiled too, so that ConsoleTests can check how it reads the move of the human.
 set -e
 cd "$(dirname "$0")"
 
@@ -14,7 +14,7 @@ JAVA=$(dirname "$JAVAC")/java
 JUNIT=lib/junit-platform-console-standalone-1.10.2.jar
 
 rm -rf out && mkdir -p out
-"$JAVAC" -d out -cp "$JUNIT" src/Ilayout.java src/Board.java src/XAgent.java src/MCTS.java src/MCTSAgent.java \
+"$JAVAC" -d out -cp "$JUNIT" src/Ilayout.java src/Board.java src/XAgent.java src/MCTS.java src/MCTSAgent.java src/Console.java \
     $(find test -name '*.java')
 
 EXCLUDE=""

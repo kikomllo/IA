@@ -11,8 +11,16 @@ import java.util.*;
  * (win 1, draw 0.5, loss 0), so MAX nodes maximise the upper confidence bound
  * {@code w/n + c*sqrt(ln(t)/n)} and MIN nodes minimise the lower bound {@code w/n - c*sqrt(ln(t)/n)}.
  * The move returned is the root child that was visited the most.
+ * <p>
+ * In every search the number of iterations is positive, the exploration constant {@code c} is finite and
+ * not negative, and for every node {@code 0 <= w <= n}.
  *
+ * @author 85782 - Pedro Salgueiro
+ * @author 90247 - Diogo Carvalho
+ * @author 84085 - Francisco Melo
+ * @version 2026-11-22
  * @see Ilayout#children()
+ * @see "Problem 3 - MCTSv3.2c.pdf, Fig. 6.11"
  */
 public class MCTS {
 
@@ -23,16 +31,16 @@ public class MCTS {
         /** The parent node, or {@code null} for the root. */
         final Node parent;
         /** The expanded successors; empty while the node is a leaf. */
-        List<Node> children = new ArrayList<>();       // vazia enquanto o nó é folha
+        List<Node> children = new ArrayList<>();       // empty while the node is a leaf
 
         /** Whether the player to move in {@code layout} is MAX. */
-        final boolean maxToPlay;   // true se layout.getTurn() == jogador da raiz
+        final boolean maxToPlay;   // true if layout.getTurn() is the player of the root
         /** The cell played to reach this node (-1 for the root). */
-        final int move;           // casa jogada para chegar aqui
+        final int move;           // cell played to get here
         /** Number of simulations that went through this node. */
-        int n;                // simulações que passaram por aqui
+        int n;                // simulations that went through here
         /** Sum of the results of those simulations, from MAX's point of view (a draw counts 0.5). */
-        double w;                // vitórias de MAX (empate = 0.5)
+        double w;                // wins of MAX (a draw counts 0.5)
 
         /**
          * Creates a leaf (no children, no simulations yet).
@@ -65,11 +73,13 @@ public class MCTS {
      * @param iterations number of iterations (selection + expansion + simulations + backpropagation) per move
      * @param c          exploration constant of the tree policy
      * @param seed       seed of the random generator used by the simulations (same seed, same move)
-     * @throws IllegalArgumentException if {@code iterations <= 0} or {@code c} is negative or NaN
+     * @throws IllegalArgumentException if {@code iterations <= 0} or {@code c} is negative, NaN or infinite
      */
     public MCTS(int iterations, double c, long seed) {
         if (iterations <= 0) throw new IllegalArgumentException("iterations must be positive");
-        if (!(c >= 0)) throw new IllegalArgumentException("c must not be negative");   // also rejects NaN
+        if (!(c >= 0) || Double.isInfinite(c)) {
+            throw new IllegalArgumentException("c must be finite and not negative");   // also rejects NaN
+        }
         this.iterations = iterations;
         this.c = c;
         this.seed = seed;
@@ -81,11 +91,14 @@ public class MCTS {
      *
      * @param state the current game state
      * @return the cell of the most visited child of the root
-     * @throws IllegalStateException if the game is already over
+     * @throws NullPointerException  if {@code state} is {@code null}
+     * @throws IllegalStateException if the game is already over or the state has no free cell
      */
     public int chooseMove(Ilayout state){
+        Objects.requireNonNull(state, "state must not be null");
         if (state.isGameOver()) throw new IllegalStateException("Game over: no move to choose.");
         Set<Integer> free = state.getAvailableMoves();
+        if (free.isEmpty()) throw new IllegalStateException("Inconsistent state: not over but no free cell.");
         if (free.size() == 1) return free.iterator().next();   // forced move, nothing to search
 
         Random random = new Random(seed);
@@ -120,9 +133,9 @@ public class MCTS {
      */
     private double scoreMax(Ilayout gameFinished) {
         Ilayout.ID winner = gameFinished.getWinner();
-        if (winner == maxPlayer) return 1.0;                // MAX ganhou
-        if (winner == Ilayout.ID.Blank) return 0.5;         // empate
-        return 0.0;                                         // MAX perdeu
+        if (winner == maxPlayer) return 1.0;                // MAX won
+        if (winner == Ilayout.ID.Blank) return 0.5;         // draw
+        return 0.0;                                         // MAX lost
     }
 
     /* 1. Selection: */

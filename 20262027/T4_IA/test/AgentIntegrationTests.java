@@ -201,4 +201,15 @@ class AgentIntegrationTests {
             assertTrue(ORACLE.optimalMoves(b).contains(cell), "position " + i + "\n" + b + "\nchose " + cell);
         }
     }
+
+    @Test
+    void agentConstructorRejectsInfiniteExploration() {
+        assertThrows(IllegalArgumentException.class, () -> new MCTSAgent(10, Double.POSITIVE_INFINITY, 1));
+        assertThrows(IllegalArgumentException.class, () -> new MCTSAgent(10, Double.NEGATIVE_INFINITY, 1));
+    }
+
+    @Test
+    void agentRejectsANullBoard() {
+        assertThrows(NullPointerException.class, () -> new MCTSAgent(10, 0.5, 1).choose(null));
+    }
 }

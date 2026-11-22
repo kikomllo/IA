@@ -940,4 +940,15 @@ class MCTSTests {
         // Documents the effect of c: the tiny c of Fig. 2 is not better than a larger one.
         assertTrue(optimalCount(0.1, 3000, 60) <= optimalCount(1.0, 3000, 60));
     }
+
+    @Test
+    void constructorRejectsInfiniteExploration() {
+        assertThrows(IllegalArgumentException.class, () -> new MCTS(10, Double.POSITIVE_INFINITY, 1));
+        assertThrows(IllegalArgumentException.class, () -> new MCTS(10, Double.NEGATIVE_INFINITY, 1));
+    }
+
+    @Test
+    void chooseMoveRejectsANullState() {
+        assertThrows(NullPointerException.class, () -> new MCTS(10, 0.5, 1).chooseMove(null));
+    }
 }

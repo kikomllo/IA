@@ -9,6 +9,15 @@
  * {@link #play(Ilayout)} (same name and signature as {@link XAgent#play(Ilayout)}, for {@link Console})
  * uses the default parameters, and the instance method {@link #choose(Ilayout)} uses the parameters
  * given to the constructor (for the tests and the experiments).
+ * <p>
+ * The parameters of an agent never change after it is created, and the layouts it receives are never modified.
+ *
+ * @author 85782 - Pedro Salgueiro
+ * @author 90247 - Diogo Carvalho
+ * @author 84085 - Francisco Melo
+ * @version 2026-11-22
+ * @see MCTS
+ * @see XAgent
  */
 public class MCTSAgent {
 
@@ -31,7 +40,8 @@ public class MCTSAgent {
      * @param iterations number of MCTS iterations per move, must be positive
      * @param c          exploration constant of the tree policy, must not be negative
      * @param seed       seed of the random generator used by the simulations
-     * @throws IllegalArgumentException if {@code iterations <= 0} or {@code c} is negative
+     * @throws IllegalArgumentException if {@code iterations <= 0} or {@code c} is negative, NaN or infinite
+     * @see MCTS#MCTS(int, double, long)
      */
     public MCTSAgent(int iterations, double c, long seed) {
         new MCTS(iterations, c, seed);          // validates the parameters now, not on the first move
@@ -47,6 +57,7 @@ public class MCTSAgent {
      * @param board the current state (not modified)
      * @return the cell to play
      * @throws IllegalStateException if the game is already over
+     * @see MCTS#chooseMove(Ilayout)
      */
     public int choose(Ilayout board) {
         return new MCTS(iterations, c, seed).chooseMove(board);
@@ -60,6 +71,7 @@ public class MCTSAgent {
      * @param board the current state (not modified)
      * @return the cell to play
      * @throws IllegalStateException if the game is already over
+     * @see MCTS#chooseMove(Ilayout)
      */
     static int play(Ilayout board) {
         return new MCTS(ITERATIONS, C, System.nanoTime()).chooseMove(board);

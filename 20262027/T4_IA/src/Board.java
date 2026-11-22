@@ -1,20 +1,39 @@
 import java.util.*;
-// import java.util.ArrayList;
-
 
 /**
- * Represents a board.
+ * A Tic-Tac-Toe board: an {@code N x M} grid where X moves first and the first player to complete
+ * {@code K} consecutive cells in a row, column or diagonal wins. A cell is identified by its index,
+ * which starts at 0 and grows from left to right and from top to bottom ({@code index = y * M + x}).
+ * <p>
+ * The grid, the move counter, the set of free cells, the winner and the end of the game always agree:
+ * the counter is the number of non-blank cells, the free cells are exactly the blank ones, and the
+ * game is over only when a player has a line or the board is full.
+ *
+ * @author 85782 - Pedro Salgueiro
+ * @author 90247 - Diogo Carvalho
+ * @author 84085 - Francisco Melo
+ * @version 2026-11-22
+ * @see Ilayout
  */
 public class Board implements Ilayout,Cloneable{
+    /** The cells of the board, indexed {@code [row][column]}. */
     private ID[][] board;
+    /** The player that moves next. */
     private ID playersTurn;
+    /** The winner once the game is over: X, O, or Blank for a draw. */
     private ID winner;
+    /** The indexes of the blank cells. */
     private HashSet<Integer> movesAvailable;
 
+    /** Number of cells already played. */
     private int moveCount;
+    /** Whether the game has ended. */
     private boolean gameOver;
 
 
+    /**
+     * Creates an empty board where X moves first.
+     */
     Board() {
         board = new ID[N][M];
         movesAvailable = new HashSet<>();
@@ -52,8 +71,13 @@ public class Board implements Ilayout,Cloneable{
      * Places an X or an O on the specified index depending on whose turn it is.
      * @param index     position starts in 0 and increases from left to right and from top to bottom
      * @return          true if the move has not already been played
+     * @throws IllegalArgumentException if {@code index} is not between 0 and {@code N*M-1}
+     * @throws IllegalStateException    if the game is already over
      */
     public boolean move (int index) {
+        if (index < 0 || index >= N * M) {
+            throw new IllegalArgumentException("index must be between 0 and " + (N * M - 1) + ": " + index);
+        }
         return move(index% M, index/M);
     }
 
@@ -62,8 +86,15 @@ public class Board implements Ilayout,Cloneable{
      * @param x the x coordinate of the location
      * @param y the y coordinate of the location
      * @return  true if the move has not already been played
+     * @throws IllegalArgumentException if {@code x} is not between 0 and {@code M-1} or {@code y} is not
+     *                                  between 0 and {@code N-1}
+     * @throws IllegalStateException    if the game is already over
      */
    public boolean move (int x, int y) {
+
+        if (x < 0 || x >= M || y < 0 || y >= N) {
+            throw new IllegalArgumentException("cell out of the board: x=" + x + ", y=" + y);
+        }
 
         if (gameOver) {
             throw new IllegalStateException("Game over. No more moves can be played.");
@@ -76,7 +107,7 @@ public class Board implements Ilayout,Cloneable{
         }
 
         moveCount++;
-        movesAvailable.remove(y * N + x);
+        movesAvailable.remove(y * M + x);
 
         // The game is a draw.
         if (moveCount == N * M) {
@@ -159,7 +190,9 @@ public class Board implements Ilayout,Cloneable{
     }
 
     /**
+     * Tells who won the game.
      * @return the player who won (or Blank if the game is a draw)
+     * @throws IllegalStateException if the game is not over yet
      */
     public ID getWinner () {
         if (!gameOver) {
@@ -179,6 +212,7 @@ public class Board implements Ilayout,Cloneable{
 
 
     /**
+     * Copies the board; the copy shares no cell and no set of free cells with the original.
      * @return  an deep copy of the board
      */
     public Object clone () {
@@ -198,11 +232,15 @@ public class Board implements Ilayout,Cloneable{
 	        b.gameOver          = this.gameOver;
 	        return b;
     	}
-    	catch (Exception e) {
-    		throw new InternalError();
+    	catch (CloneNotSupportedException e) {
+    		throw new InternalError(e);
     	}
     }
 
+    /**
+     * Draws the board with one line per row: {@code -} for a blank cell, X or O otherwise.
+     * @return the board as text
+     */
     @Override
     public String toString () {
         StringBuilder sb = new StringBuilder();
@@ -220,7 +258,7 @@ public class Board implements Ilayout,Cloneable{
                 sb.append("\n");
             }
         }
-        return new String(sb);
+        return sb.toString();
     }
 
     /**
@@ -246,6 +284,11 @@ public class Board implements Ilayout,Cloneable{
     }
 
 
+	/**
+	 * Two boards are equal when all their cells are equal.
+	 * @param other the object to compare with
+	 * @return true if {@code other} is a board with the same cells
+	 */
 	@Override
 	public boolean equals(Object other) {
 		if (other == this) return true;
@@ -259,14 +302,27 @@ public class Board implements Ilayout,Cloneable{
         return true;
 	}
 
+	/**
+	 * Hash code consistent with {@link #equals(Object)}: it depends only on the cells.
+	 * @return the hash code of the cells
+	 */
 	@Override
 	public int hashCode() {
 		return Arrays.deepHashCode(board);
 	}
 
+	/**
+	 * Tells whether a cell is empty.
+	 * @param index the position of the cell, from 0 to {@code N*M-1}
+	 * @return true if nothing was played in the cell
+	 * @throws IllegalArgumentException if {@code index} is not between 0 and {@code N*M-1}
+	 */
 	public boolean isBlank (int index) {
-		int x=index/M;
-		int y=index%M;
-        return (board[x][y] == ID.Blank);
+		if (index < 0 || index >= N * M) {
+			throw new IllegalArgumentException("index must be between 0 and " + (N * M - 1) + ": " + index);
+		}
+		int row = index / M;
+		int column = index % M;
+        return (board[row][column] == ID.Blank);
 	}
 }
