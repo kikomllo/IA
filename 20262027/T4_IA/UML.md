@@ -94,8 +94,8 @@ classDiagram
     }
 
     Ilayout <|.. Board
-    Ilayout +-- ID
-    MCTS *-- Node : nested
+    Ilayout --> ID : nested enum
+    MCTS *-- Node : nested class
     Node "1" o-- "0..*" Node : children
     Node --> Ilayout : layout
     MCTS ..> Ilayout : uses
